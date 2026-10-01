@@ -1,3 +1,32 @@
+# WhistleDrop — Speak Without Being Seen
+
+A confidential reporting backend built with **FastAPI** + **Supabase (Postgres)**.
+Anyone can file a report with no account and no identifying information;
+moderators review and resolve reports through an authenticated API.
+
+## 1. How it's built
+
+```
+whistledrop/
+├── app/
+│   ├── main.py            # FastAPI app, mounts the three routers
+│   ├── config.py          # env-based settings
+│   ├── database.py        # async SQLAlchemy engine/session
+│   ├── models.py          # Report, StatusUpdate, Moderator tables
+│   ├── schemas.py         # Pydantic request/response models
+│   ├── security.py        # case-code + password hashing, JWT
+│   ├── deps.py             # get_current_moderator auth dependency
+│   └── routers/
+│       ├── reports.py     # PUBLIC: submit + track (no auth)
+│       ├── auth.py        # moderator login / register
+│       └── moderator.py   # moderator: list / view / update reports
+├── scripts/seed_moderator.py
+├── supabase_schema.sql    # run this in Supabase's SQL editor
+├── tests/                 # pytest, no live DB needed
+├── requirements.txt
+└── .env.example
+```
+
 - **FastAPI** serves the HTTP API and auto-generates Swagger docs at `/docs`.
 - **Supabase** provides a hosted Postgres database. The backend talks to it
   directly over a normal Postgres connection string using SQLAlchemy's async
@@ -51,7 +80,7 @@ These test the hashing, JWT, and status-transition logic directly and don't need
 | POST | `/reports/track` | none (case code) | Look up a report's status and update history |
 | POST | `/moderator/login` | none | Exchange username/password for a JWT |
 | POST | `/moderator/register` | moderator JWT | Create another moderator account |
-| GET | `/moderator/reports` | moderator JWT | List reports, filterable by `category` / `status`, searchable by `search` (matches within description), paginated via `limit` / `offset` |
+| GET | `/moderator/reports` | moderator JWT | List reports, filterable by `category` / `status` |
 | GET | `/moderator/reports/{id}` | moderator JWT | View one report in full |
 | PATCH | `/moderator/reports/{id}` | moderator JWT | Change status and/or add a status message |
 | GET | `/health` | none | Liveness check |
@@ -118,19 +147,7 @@ curl -X PATCH http://127.0.0.1:8000/moderator/reports/<report-id> \
   -d '{"status": "UNDER_REVIEW", "message": "A finance auditor has been assigned."}'
 ```
 
-## 6. Deploying it
-
-`render.yaml` in this repo defines a free Render web service. To deploy:
-1. Push this project to a GitHub repo.
-2. In Render, **New + → Blueprint**, and point it at that repo — Render reads `render.yaml` and sets up the service automatically.
-3. When prompted, fill in `DATABASE_URL` (your Supabase pooler connection string) and `JWT_SECRET`. These are marked `sync: false` in `render.yaml`, meaning Render asks for them rather than storing them in the repo.
-4. Deploy. Your API will be live at `https://<service-name>.onrender.com`, with Swagger docs at `/docs`.
-
-The free tier spins down after 15 minutes idle and takes 30-60 seconds to wake on the next request — fine for demos, worth knowing about if you're timing a live walkthrough.
-
-Moderator accounts are seeded the same way regardless of where the API runs — `scripts/seed_moderator.py` talks directly to the Supabase database, not through the API, so running it locally works for a deployed instance too as long as both point at the same `DATABASE_URL`.
-
-## 7. Assumptions & design decisions
+## 6. Assumptions & design decisions
 
 - **Auth: custom JWT instead of Supabase Auth.** Supabase Auth would work too, but a self-contained `moderators` table + JWT keeps the whole flow visible in this codebase rather than split across two systems — easier to learn from and to swap out later.
 - **No moderator self-registration.** The first account is created with a CLI script; afterwards, only an already-authenticated moderator can create another. This avoids an open door to creating moderator accounts.
