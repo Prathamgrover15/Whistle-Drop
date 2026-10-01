@@ -15,9 +15,6 @@ router = APIRouter(prefix="/moderator", tags=["moderator-auth"])
 async def login(payload: ModeratorLogin, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Moderator).where(Moderator.username == payload.username))
     moderator = result.scalar_one_or_none()
-
-    # Same error for "no such user" and "wrong password" so the API
-    # doesn't leak which usernames exist.
     if moderator is None or not verify_password(payload.password, moderator.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
 
@@ -31,11 +28,6 @@ async def register_moderator(
     db: AsyncSession = Depends(get_db),
     _: Moderator = Depends(get_current_moderator),  # must already be a logged-in moderator
 ):
-    """
-    Deliberately locked behind an existing moderator's token -- there's
-    no public sign-up for moderator accounts. The very first moderator
-    is created with scripts/seed_moderator.py instead.
-    """
     existing = await db.execute(select(Moderator.id).where(Moderator.username == payload.username))
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username already taken")

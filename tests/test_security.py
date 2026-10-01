@@ -11,7 +11,7 @@ from app.security import (
 def test_case_code_has_expected_prefix_and_length():
     code = generate_case_code()
     assert code.startswith("WD-")
-    assert len(code) > 20  # WD- + 18 random bytes, base64-encoded
+    assert len(code) > 20  
 
 
 def test_case_codes_are_unique():

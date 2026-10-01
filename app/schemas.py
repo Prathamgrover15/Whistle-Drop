@@ -28,7 +28,6 @@ class TrackRequest(BaseModel):
 
 
 class StatusUpdateOut(BaseModel):
-    """What a REPORTER sees for a timeline entry -- no moderator identity."""
 
     model_config = ConfigDict(from_attributes=True)
 

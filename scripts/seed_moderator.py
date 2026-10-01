@@ -1,13 +1,3 @@
-"""
-Create a moderator account directly against the database.
-
-There is no public sign-up endpoint for moderators (see
-app/routers/auth.py's /moderator/register, which requires an existing
-moderator token). This script is how you create the very first one.
-
-Usage:
-    python -m scripts.seed_moderator alice "a-strong-password"
-"""
 import argparse
 import asyncio
 import sys

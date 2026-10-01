@@ -27,10 +27,6 @@ class ReportStatus(str, enum.Enum):
 
 
 class Moderator(Base):
-    """
-    A moderator account. This is the ONLY place any kind of "identity"
-    lives in this schema -- and it belongs to staff, never to a reporter.
-    """
 
     __tablename__ = "moderators"
 
@@ -41,22 +37,10 @@ class Moderator(Base):
 
 
 class Report(Base):
-    """
-    A single anonymous report. Notice what's NOT here: no reporter_id,
-    no email, no IP address, no session/cookie reference. There is
-    nothing in this table (or anywhere else in the schema) that could
-    be used to link a report back to the person who filed it.
-    """
 
     __tablename__ = "reports"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-
-    # We never store the plaintext case code -- only a SHA-256 hash of it.
-    # This mirrors how passwords are stored: even a full database dump
-    # doesn't reveal the code, so nobody with DB access (including a
-    # careless moderator or an attacker) can look up a specific report
-    # unless they already know its code.
     case_code_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
 
     category: Mapped[ReportCategory] = mapped_column(
@@ -78,12 +62,6 @@ class Report(Base):
 
 
 class StatusUpdate(Base):
-    """
-    A timeline entry for a report. moderator_id is here for internal
-    accountability (so staff can tell who changed what) but it is
-    NEVER returned to a reporter tracking their case -- see
-    schemas.StatusUpdateOut, which simply doesn't include it.
-    """
 
     __tablename__ = "status_updates"
 

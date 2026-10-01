@@ -16,11 +16,6 @@ async def get_current_moderator(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> Moderator:
-    """
-    Every moderator-only route depends on this. It verifies the JWT,
-    then confirms the moderator still exists (in case an account was
-    removed after the token was issued).
-    """
     subject = decode_access_token(credentials.credentials)
     if subject is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")

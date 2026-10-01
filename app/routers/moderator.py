@@ -91,8 +91,6 @@ async def update_report(
         new_status = payload.status
         report.status = new_status
 
-    # moderator_id is recorded for internal accountability only -- it
-    # is never included in what a reporter sees (see StatusUpdateOut).
     db.add(StatusUpdate(report_id=report.id, status=new_status, message=payload.message, moderator_id=moderator.id))
     await db.commit()
     await db.refresh(report, attribute_names=["updates"])

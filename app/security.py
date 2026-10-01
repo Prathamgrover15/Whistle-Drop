@@ -13,21 +13,10 @@ CASE_CODE_PREFIX = "WD"
 
 
 def generate_case_code() -> str:
-    """
-    secrets.token_urlsafe(18) gives 18 random bytes (144 bits of entropy)
-    encoded as URL-safe base64. That's astronomically harder to guess
-    than, say, a 6-digit tracking number -- brute forcing it is not
-    practical.
-    """
     return f"{CASE_CODE_PREFIX}-{secrets.token_urlsafe(18)}"
 
 
 def hash_case_code(case_code: str) -> str:
-    """
-    SHA-256 is fine here (unlike passwords, case codes are already
-    high-entropy random tokens, not something a human chose, so there's
-    no dictionary/brute-force risk that would call for bcrypt/argon2).
-    """
     return hashlib.sha256(case_code.encode("utf-8")).hexdigest()
 
 

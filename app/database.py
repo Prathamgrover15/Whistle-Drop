@@ -2,11 +2,6 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.orm import DeclarativeBase
 
 from app.config import settings
-
-# Supabase's transaction pooler (PgBouncer) can route successive statements on
-# one client connection to different server connections. Disable both asyncpg's
-# and SQLAlchemy's prepared-statement caches so a ping/query never references a
-# prepared statement that only exists on a different server connection.
 engine = create_async_engine(
     settings.database_url,
     echo=False,

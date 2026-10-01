@@ -12,14 +12,6 @@ router = APIRouter(prefix="/reports", tags=["reports"])
 
 @router.post("", response_model=ReportCreateResponse, status_code=status.HTTP_201_CREATED)
 async def submit_report(payload: ReportCreate, db: AsyncSession = Depends(get_db)):
-    """
-    Anonymous submission. No auth header, no account, no cookie is
-    read or set. The request body contains nothing about who is
-    submitting -- only the report content itself.
-    """
-    # Generate a code and make sure its hash isn't already in use.
-    # With 144 bits of entropy a collision is essentially impossible,
-    # but we check anyway rather than assume.
     for _ in range(5):
         case_code = generate_case_code()
         case_code_hash = hash_case_code(case_code)
@@ -41,19 +33,11 @@ async def submit_report(payload: ReportCreate, db: AsyncSession = Depends(get_db
     db.add(StatusUpdate(report_id=report.id, status=ReportStatus.SUBMITTED, message="Report submitted."))
     await db.commit()
     await db.refresh(report)
-
-    # The plaintext case_code exists only in this function's memory.
-    # It is returned once, here, and never persisted anywhere.
     return ReportCreateResponse(case_code=case_code, status=report.status, created_at=report.created_at)
 
 
 @router.post("/track", response_model=TrackResponse)
 async def track_report(payload: TrackRequest, db: AsyncSession = Depends(get_db)):
-    """
-    Looking up a report requires only the case code -- nothing that
-    identifies the reporter. We hash the submitted code and compare
-    hashes, so the lookup works the same way a password check does.
-    """
     case_code_hash = hash_case_code(payload.case_code.strip())
     result = await db.execute(select(Report).where(Report.case_code_hash == case_code_hash))
     report = result.scalar_one_or_none()

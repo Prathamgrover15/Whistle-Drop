@@ -2,12 +2,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """
-    All configuration comes from environment variables (or a .env file).
-    Nothing here should ever be hard-coded, especially not the JWT secret
-    or the database credentials.
-    """
-
     database_url: str
     jwt_secret: str
     jwt_algorithm: str = "HS256"
